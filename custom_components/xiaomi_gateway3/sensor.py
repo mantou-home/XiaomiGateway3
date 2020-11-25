@@ -20,11 +20,14 @@ UNITS = {
     'gas density': '% LEL',
     'smoke density': '% obs/ft',
     'moisture': '%',
+    'chip_temperature': '°C',
 }
 
 ICONS = {
     'conductivity': 'mdi:flower',
     'consumption': 'mdi:flash',
+    'power': 'mdi:gauge',
+    'chip_temperature': 'mdi:thermometer-lines',
     'gas density': 'mdi:google-circles-communities',
     'moisture': 'mdi:water-percent',
     'smoke density': 'mdi:google-circles-communities',

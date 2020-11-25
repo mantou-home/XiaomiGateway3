@@ -70,6 +70,21 @@ DEVICES = [{
     'lumi.relay.c2acn01': ["Aqara", "Relay", "LLKZMK11LM"],  # tested
     'lumi.ctrl_ln2': ["Aqara", "Wall Double Switch", "QBKG12LM"],
     'lumi.ctrl_ln2.aq1': ["Aqara", "Wall Double Switch", "QBKG12LM"],
+    'params': [
+        # ['0.11.85', 'load_voltage', 'power', 'sensor'],  # 0
+        ['0.12.85', 'load_power', 'power', 'sensor'],
+        # ['0.14.85', None, '?', 'sensor'],  # 5.01, 6.13
+        ['4.1.85', 'channel_0', 'channel 1', 'switch'],
+        ['4.2.85', 'channel_1', 'channel 2', 'switch'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],
+        # [?, 'enable_motor_mode', 'interlock', None]
+        ['13.1.85', None, 'button_1', None],
+        ['13.2.85', None, 'button_2', None],
+        ['13.5.85', None, 'button_both', None],
+        [None, None, 'action', 'sensor'],
+    ]
+}, {
     'lumi.switch.b2nacn02': ["Aqara", "D1 Wall Double Switch", "QBKG24LM"],
     'params': [
         # ['0.11.85', 'load_voltage', 'power', 'sensor'],  # 0
@@ -80,6 +95,7 @@ DEVICES = [{
         ['4.2.85', 'channel_1', 'channel 2', 'switch'],
         ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],
         ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],
+        ['8.0.2006', None, 'chip_temperature', 'sensor'],
         # [?, 'enable_motor_mode', 'interlock', None]
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
@@ -151,6 +167,7 @@ DEVICES = [{
         ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],
         ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],
         ['4.12.85', 'disable_btn2', 'disable channel 3', 'switch'],
+        ['8.0.2006', None, 'chip_temperature', 'sensor'],
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.3.85', None, 'button_3', None],
@@ -394,6 +411,8 @@ def fix_xiaomi_props(params) -> dict:
     for k, v in params.items():
         if k in ('temperature', 'humidity', 'pressure'):
             params[k] = v / 100.0
+        elif k in ('chip_temperature'):
+            params[k] = v
         elif v in ('on', 'open'):
             params[k] = 1
         elif v in ('off', 'close'):
