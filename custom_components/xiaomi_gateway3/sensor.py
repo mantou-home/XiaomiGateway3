@@ -104,10 +104,6 @@ class Gateway3Action(Gateway3Device):
         return self._state
 
     @property
-    def state_attributes(self):
-        return self._attrs
-
-    @property
     def icon(self):
         return 'mdi:bell'
 
