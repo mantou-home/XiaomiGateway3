@@ -26,7 +26,7 @@ UNITS = {
 ICONS = {
     'conductivity': 'mdi:flower',
     'consumption': 'mdi:flash',
-    'power': 'mdi:gauge',
+    'power': 'mdi:speedometer',
     'chip_temperature': 'mdi:thermometer-lines',
     'gas density': 'mdi:google-circles-communities',
     'moisture': 'mdi:water-percent',
