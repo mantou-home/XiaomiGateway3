@@ -79,6 +79,12 @@ class Gateway3Light(Gateway3Device, LightEntity):
     def turn_off(self):
         self.gw.send(self.device, {self._attr: 0})
 
+# mesh light properties: name with (siid & piid)
+MESH_LIGHT_PROPS = {
+	'light': (2,1),
+	'brightness': (2,2),
+	'color_temp': (2,3),
+}
 
 class Gateway3MeshLight(Gateway3Device, LightEntity):
     _brightness = None
@@ -118,8 +124,8 @@ class Gateway3MeshLight(Gateway3Device, LightEntity):
             # process poll update
             did = self.device['did']
             try:
-                payload = [{'did': did, 'siid': 2, 'piid': p}
-                           for p in range(1, 4)]
+                payload = [{'did': did, 'siid': p[0], 'piid': p[1]}
+                           for p in MESH_LIGHT_PROPS.values()]
                 resp = self.gw.miio.send('get_properties', payload)
                 self.gw.process_mesh_data(resp)
 
@@ -134,15 +140,15 @@ class Gateway3MeshLight(Gateway3Device, LightEntity):
     def _update(self, data: dict):
         self.device['online'] = True
 
-        if self._attr in data:
-            self._state = data[self._attr]
-        if 'brightness' in data:
+        if MESH_LIGHT_PROPS[self._attr] in data:
+            self._state = data[MESH_LIGHT_PROPS[self._attr]]
+        if MESH_LIGHT_PROPS['brightness'] in data:
             # 0...65535
-            self._brightness = data['brightness'] / 65535.0 * 255.0
-        if 'color_temp' in data:
+            self._brightness = data[MESH_LIGHT_PROPS['brightness']] / 65535.0 * 255.0
+        if MESH_LIGHT_PROPS['color_temp'] in data:
             # 2700..6500 => 370..153
             self._color_temp = \
-                color.color_temperature_kelvin_to_mired(data['color_temp'])
+                color.color_temperature_kelvin_to_mired(data[MESH_LIGHT_PROPS['color_temp']])
 
         self.async_write_ha_state()
 
@@ -150,21 +156,21 @@ class Gateway3MeshLight(Gateway3Device, LightEntity):
         payload = {}
 
         if ATTR_BRIGHTNESS in kwargs:
-            payload['brightness'] = \
+            payload[MESH_LIGHT_PROPS['brightness']] = \
                 int(kwargs[ATTR_BRIGHTNESS] / 255.0 * 65535)
 
         if ATTR_COLOR_TEMP in kwargs:
-            payload['color_temp'] = color.color_temperature_mired_to_kelvin(
+            payload[MESH_LIGHT_PROPS['color_temp']] = color.color_temperature_mired_to_kelvin(
                 kwargs[ATTR_COLOR_TEMP])
 
         if not payload:
-            payload[self._attr] = True
+            payload[MESH_LIGHT_PROPS[self._attr]] = True
 
-        self.gw.send_mesh(self.device, payload)
+        self.gw.send_mesh_raw(self.device, payload)
         time.sleep(.5)  # delay before poll actual status
 
     def turn_off(self):
-        self.gw.send_mesh(self.device, {self._attr: False})
+        self.gw.send_mesh_raw(self.device, {MESH_LIGHT_PROPS[self._attr]: False})
         time.sleep(.5)  # delay before poll actual status
 
 
