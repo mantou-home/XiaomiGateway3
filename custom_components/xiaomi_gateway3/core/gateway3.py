@@ -116,6 +116,8 @@ class GatewayMesh:
 
     def send_mesh(self, device: dict, data: dict):
         did = device['did']
+        if device['model'] in bluetooth.BLE_SWITCH_DEVICES_PROPS.keys():
+            data['is_switch'] = True
         payload = bluetooth.pack_xiaomi_mesh(did, data)
         try:
             # 2 seconds are selected experimentally
@@ -723,11 +725,21 @@ class Gateway3(Thread, GatewayV, GatewayMesh, GatewayStats):
 
                 self.devices[device['did']] = device
 
+                model = device['model']
+
+                domain = 'switch' if model in bluetooth.BLE_SWITCH_DEVICES_PROPS.keys() else 'light'
+
                 # wait domain init
-                while 'light' not in self.setups:
+                while domain not in self.setups:
                     time.sleep(1)
 
-                self.setups['light'](self, device, 'light')
+                if domain == 'switch':
+                    for prop in bluetooth.BLE_SWITCH_DEVICES_PROPS[model]:
+                        switch_device = {'mesh_prop': prop}
+                        switch_device.update(device)
+                        self.setups[domain](self, switch_device, domain)
+                else:
+                    self.setups[domain](self, device, domain)
 
             elif device['type'] == 'ble':
                 # only save info for future
@@ -936,6 +948,18 @@ class Gateway3(Thread, GatewayV, GatewayMesh, GatewayStats):
         if did in self.updates:
             for handler in self.updates[did]:
                 handler(payload)
+
+    def process_mesh_data(self, data: list):
+        for msg in data:
+            device = self.devices[msg['did']]
+            if device:
+                msg['model'] = device['model']
+
+        data = bluetooth.parse_xiaomi_mesh(data)
+        for did, payload in data.items():
+            if did in self.updates:
+                for handler in self.updates[did]:
+                    handler(payload)
 
     def process_pair(self, raw: bytes):
         # get shortID and eui64 of paired device
