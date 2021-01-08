@@ -1,0 +1,74 @@
+{
+  "config": {
+    "error": {
+      "no_servers": "请至少选择一个服务器",
+      "cant_login": "无法登陆，检查用户名和密码"
+      "cant_connect": "无法连接到网关",
+      "wrong_model": "尚未支持的网关型号"
+    },
+    "step": {
+      "user": {
+        "title": "选择动作",
+        "data": {
+          "action": "动作"
+        }
+      },
+      "cloud": {
+        "title": "添加小米云账号",
+        "description": "选择你设备所属的服务器",
+        "data": {
+          "username": "邮箱/小米ID",
+          "password": "密码",
+          "servers": "服务器"
+        }
+      },
+      "token": {
+        "description": "[获得](https://github.com/Maxmudjon/com.xiaomi-miio/blob/master/docs/obtain_token.md) 米家 token {error_text}",
+        "data": {
+          "host": "Host",
+          "token": "Token",
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "cloud": {
+        "title": "小米云的设备信息",
+        "data": {
+          "did": "设备"
+        },
+        "description": "{device_info}"
+      },
+      "user": {
+        "title": "网关设置",
+        "data": {
+          "host": "Host",
+          "token": "Token",
+          "ble": "支持BLE设备",
+          "stats": "Zigbee 和 BLE 性能分析数据",
+          "debug": "DEBUG",
+          "buzzer": "屏蔽蜂鸣音 [PRO]",
+          "parent": "记录设备中继数据 [PRO]",
+          "zha": "模式选择[PRO]"
+        },
+        "description": "切换 **PRO** 设施，请确认你知道他是什么"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "button": "Button press",
+      "button_1": "1st button press",
+      "button_2": "2nd button press",
+      "button_3": "3rd button press",
+      "button_4": "4th button press",
+      "button_5": "5th button press",
+      "button_6": "6th button press",
+      "button_both": "Both button press",
+      "button_both_12": "1st and 2nd button press",
+      "button_both_13": "1st and 3rd button press",
+      "button_both_23": "2nd and 3rd button press"
+    }
+  }
+}
