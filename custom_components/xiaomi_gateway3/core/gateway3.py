@@ -108,6 +108,10 @@ class GatewayMesh:
             self.mesh_ts = time.time() + 30
 
     def process_mesh_data(self, data: list):
+        for msg in data:
+            device = self.devices[msg['did']]
+            if device:
+                msg['model'] = device['model']
         data = bluetooth.parse_xiaomi_mesh(data)
         for did, payload in data.items():
             if did in self.updates:
@@ -948,18 +952,6 @@ class Gateway3(Thread, GatewayV, GatewayMesh, GatewayStats):
         if did in self.updates:
             for handler in self.updates[did]:
                 handler(payload)
-
-    def process_mesh_data(self, data: list):
-        for msg in data:
-            device = self.devices[msg['did']]
-            if device:
-                msg['model'] = device['model']
-
-        data = bluetooth.parse_xiaomi_mesh(data)
-        for did, payload in data.items():
-            if did in self.updates:
-                for handler in self.updates[did]:
-                    handler(payload)
 
     def process_pair(self, raw: bytes):
         # get shortID and eui64 of paired device
