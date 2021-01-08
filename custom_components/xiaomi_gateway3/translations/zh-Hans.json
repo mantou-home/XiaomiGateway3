@@ -26,7 +26,7 @@
         "description": "[获得](https://github.com/Maxmudjon/com.xiaomi-miio/blob/master/docs/obtain_token.md) 米家 token {error_text}",
         "data": {
           "host": "Host",
-          "token": "Token",
+          "token": "Token"
         }
       }
     }
