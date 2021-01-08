@@ -2,7 +2,7 @@
   "config": {
     "error": {
       "no_servers": "请至少选择一个服务器",
-      "cant_login": "无法登陆，检查用户名和密码"
+      "cant_login": "无法登陆，检查用户名和密码",
       "cant_connect": "无法连接到网关",
       "wrong_model": "尚未支持的网关型号"
     },
