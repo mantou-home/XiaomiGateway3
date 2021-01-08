@@ -24,42 +24,11 @@ DEVICES = {
     997: ["Yeelight", "Mesh Spotlight", "YLSD04YL"],
     1771: ["Xiaomi", "Mesh Bulb", "MJDP09YL"],
     1772: ["Xiaomi", "Mesh Downlight", "MJTS01YL"],
-	1946: ["XIAOMI", "Mesh Wall Double Switch", "DHKG02ZM"],
-    2007: ["Unknown", "Mesh Switch Controller", "2007"],
-    2257: ["PTX", "Mesh Wall Double Switch", "PTX-SK2M"],
     2076: ["Yeelight", "Mesh Downlight M2", "YLTS02YL/YLTS04YL"],
     2342: ["Yeelight", "Mesh Bulb M2", "YLDP25YL/YLDP26YL"],
     # Mesh Group
     0: ["Xiaomi", "Mesh Group", "Mesh Group"]
 }
-
-BLE_SWITCH_DEVICES = [
-	1946,
-	2007,
-	2257,
-]
-
-# model: [
-#   [siid, piid, name, on_value, off_value],
-#   [siid, piid, name, on_value, off_value],
-#   ...
-# ]
-BLE_SWITCH_DEVICES_PROPS = {
-	1946: [
-        [2, 1, 'Left Switch', True, False],
-        [3, 1, 'Right Switch', True, False],
-    ],
-    2257: [
-        [2, 1, 'Left Switch', True, False],
-        [3, 1, 'Right Switch', True, False],
-        [8, 1, 'Backlight', 1, 0],
-        [8, 2, 'Left - Always On', 1, 0],
-        [8, 3, 'Right - Always On', 1, 0],
-    ]
-}
-DEFAULT_SWITCH_PROP = [
-	[2, 1, 'Switch', True, False]
-]
 
 BLE_FINGERPRINT_ACTION = [
     "Match successful", "Match failed", "Timeout", "Low quality",
@@ -316,62 +285,19 @@ def parse_xiaomi_mesh(data: list):
     return result
 
 
-def parse_xiaomi_mesh_raw(data: list):
-    """Can receive multiple properties from multiple devices."""
-    result = {}
-
-    for payload in data:
-        if payload.get('code', 0) != 0:
-            continue
-
-        did = payload['did']
-        key = (payload['siid'], payload['piid'])
-        
-        result.setdefault(did, {})[key] = payload['value']
-
-    return result
-
-def parse_xiaomi_mesh_callback(data: list):
-    result = []
-
-    for payload in data:
-        if payload.get('code', 1) != 1:
-            continue
-        
-        result.append([
-            payload['did'], payload['siid'], payload['piid'],
-        ])
-
-    return result
-
 def pack_xiaomi_mesh(did: str, data: Union[dict, list]):
-    ''' map light properties '''
     if isinstance(data, dict):
-        result = []
-        for k,v in data.items():
-            result.append({
-                'piid': MESH_PROPS.index(k),
-                'value': v
-            })
-        return pack_xiaomi_mesh_raw(did, result)
-    else:
-        result = list(map(lambda k: MESH_PROPS.index(k), data))
-        return pack_xiaomi_mesh_raw(did, result)
-
-def pack_xiaomi_mesh_raw(did: str, data: Union[dict, list]):
-    if isinstance(data, dict):
-        # k is a tuple of (siid, piid)
         return [{
             'did': did,
-            'siid': k[0],
-            'piid': k[1],
+            'siid': 2,
+            'piid': MESH_PROPS.index(k),
             'value': v
         } for k, v in data.items()]
     else:
         return [{
             'did': did,
-            'siid': k[0],
-            'piid': k[1],
+            'siid': 2,
+            'piid': MESH_PROPS.index(k),
         } for k in data]
 
 

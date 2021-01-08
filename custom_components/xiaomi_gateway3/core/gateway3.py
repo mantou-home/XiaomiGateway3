@@ -456,23 +456,11 @@ class Gateway3(Thread, GatewayV):
 
                 self.devices[device['did']] = device
 
-                if device['model'] in bluetooth.BLE_SWITCH_DEVICES:
-                    while 'switch' not in self.setups:
-                        time.sleep(1)
+                # wait domain init
+                while 'light' not in self.setups:
+                    time.sleep(1)
 
-                    props = bluetooth.BLE_SWITCH_DEVICES_PROPS.get(device['model'], bluetooth.DEFAULT_SWITCH_PROP)
-                    for prop in props:
-                        d = device.copy()
-                        d['mesh_prop'] = prop
-                        self.setups['switch'](self, d, 'switch')
-
-                    #self.setups['switch'](self, device, 'switch')
-                else:
-                    # wait domain init
-                    while 'light' not in self.setups:
-                        time.sleep(1)
-
-                    self.setups['light'](self, device, 'light')
+                self.setups['light'](self, device, 'light')
 
             elif device['type'] == 'ble':
                 # only save info for future
@@ -702,7 +690,7 @@ class Gateway3(Thread, GatewayV):
         # not always Mesh devices
         self.debug(f"Process Mesh* {data}")
 
-        data = bluetooth.parse_xiaomi_mesh_raw(data)
+        data = bluetooth.parse_xiaomi_mesh(data)
         for did, payload in data.items():
             if did in self.updates:
                 for handler in self.updates[did]:
@@ -779,9 +767,9 @@ class Gateway3(Thread, GatewayV):
             mac = self.device['mac'][2:].upper()
             self.mqtt.publish(f"gw/{mac}/publishstate")
 
-    def send_mesh_raw(self, device: dict, data: dict):
+    def send_mesh(self, device: dict, data: dict):
         did = device['did']
-        payload = bluetooth.pack_xiaomi_mesh_raw(did, data)
+        payload = bluetooth.pack_xiaomi_mesh(did, data)
         try:
             return self.miio.send('set_properties', payload)
         except:
