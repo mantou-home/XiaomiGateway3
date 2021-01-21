@@ -70,8 +70,8 @@ DEVICES = [{
 }, {
     # dual channel on/off, power measurement
     'lumi.relay.c2acn01': ["Aqara", "Relay", "LLKZMK11LM"],  # tested
-    'lumi.ctrl_ln2': ["Aqara", "Wall Double Switch", "QBKG12LM"],
-    'lumi.ctrl_ln2.aq1': ["Aqara", "Wall Double Switch", "QBKG12LM"],
+    'lumi.ctrl_ln2': ["Aqara", "Double Wall Switch", "QBKG12LM"],
+    'lumi.ctrl_ln2.aq1': ["Aqara", "Double Wall Switch", "QBKG12LM"],
     'params': [
         # ['0.11.85', 'load_voltage', 'power', 'sensor'],  # 0
         ['0.12.85', 'load_power', 'power', 'sensor'],

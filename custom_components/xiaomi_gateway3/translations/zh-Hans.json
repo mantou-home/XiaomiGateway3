@@ -4,7 +4,7 @@
       "no_servers": "请至少选择一个服务器",
       "cant_login": "无法登陆，检查用户名和密码",
       "cant_connect": "无法连接到网关",
-      "wrong_model": "尚未支持的网关型号"
+      "wrong_model": "未支持的网关型号"
     },
     "step": {
       "user": {
@@ -52,7 +52,7 @@
           "parent": "记录设备中继数据 [PRO]",
           "zha": "模式选择[PRO]"
         },
-        "description": "切换 **PRO** 设施，请确认你知道他是什么"
+	"description": "您必须了解风险后，才建议变更 **PRO** 选项"
       }
     }
   },
