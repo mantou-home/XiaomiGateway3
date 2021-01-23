@@ -2,6 +2,7 @@
   "domain": "xiaomi_gateway3",
   "name": "Xiaomi Gateway 3",
   "config_flow": true,
+  "zeroconf": ["_aqara-setup._tcp.local."],
   "documentation": "https://github.com/AlexxIT/XiaomiGateway3",
   "issue_tracker": "https://github.com/AlexxIT/XiaomiGateway3/issues",
   "dependencies": [

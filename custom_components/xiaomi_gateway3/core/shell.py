@@ -29,10 +29,17 @@ FIRMWARE_PATHS = ('/data/firmware.bin', '/data/firmware/firmware_ota.bin')
 
 
 class TelnetShell(Telnet):
-    def __init__(self, host: str):
+    def __init__(self, host: str, password=None, device_name=None):
         super().__init__(host, timeout=5)
         self.read_until(b"login: ")
-        self.exec('admin')
+        login_name = 'root' if device_name and 'g2h' in device_name else 'admin'
+        if password:
+            command = '{}\r\n'.format(login_name)
+            self.write(command.encode())
+            self.read_until(b"Password: ", timeout=10)
+            self.exec(password)
+        else:
+            self.exec(login_name)
 
     def exec(self, command: str, as_bytes=False) -> Union[str, bytes]:
         """Run command and return it result."""
@@ -130,6 +137,14 @@ class TelnetShell(Telnet):
             self.write(f"cat {filename}\r\n".encode())
             self.read_until(b"\r\n")  # skip command
             return self.read_until(b"# ")[:-2]
+
+    def get_prop(self, property_value: str):
+        """ get property """
+        command = "getprop {}\n".format(property_value)
+        self.write(command.encode())
+        self.read_until(b"\r")
+        return str(self.read_until(
+            b"# ")[:-2], encoding="utf-8").strip().rstrip()
 
     def run_buzzer(self):
         self.exec("killall basic_gw")
