@@ -9,7 +9,6 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_registry import EntityRegistry
 from homeassistant.helpers.storage import Store
-from homeassistant.util import sanitize_filename
 
 from .core import utils
 from .core.gateway3 import Gateway3
@@ -151,8 +150,7 @@ async def _setup_micloud_entry(hass: HomeAssistant, config_entry):
             _LOGGER.error("Can't login to MiCloud")
 
     # load devices from or save to .storage
-    filename = sanitize_filename(data['username'])
-    store = Store(hass, 1, f"{DOMAIN}/{filename}.json")
+    store = Store(hass, 1, f"{DOMAIN}/{data['username']}.json")
     if devices is None:
         _LOGGER.debug("Loading a list of devices from the .storage")
         devices = await store.async_load()
@@ -315,7 +313,7 @@ class Gateway3Device(Entity):
                 'manufacturer': self.device['device_manufacturer'],
                 'model': self.device['device_model'],
                 'name': self.device['device_name'],
-                'sw_version': self.device['zb_ver'],
+                'sw_version': self.device.get('fw_ver'),
                 'via_device': (DOMAIN, self.gw.device['mac'])
             }
         else:  # ble and mesh

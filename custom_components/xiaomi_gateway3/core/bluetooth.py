@@ -9,6 +9,7 @@ DEVICES = [{
     426: ["Xiaomi", "TH Sensor", "LYWSDCGQ/01ZM"],
     794: ["Xiaomi", "Door Lock", "MJZNMS02LM"],
     839: ["Xiaomi", "Qingping TH Sensor", "CGG1"],
+    903: ["Xiaomi", "ZenMeasure TH", "MHO-C401"],
     1034: ["Xiaomi", "Mosquito Repellent", "WX08ZM"],
     1115: ["Xiaomi", "TH Clock", "LYWSD02MMC"],
     1249: ["Xiaomi", "Magic Cube", "XMMF01JQD"],
@@ -19,6 +20,7 @@ DEVICES = [{
     1747: ["Xiaomi", "ZenMeasure Clock", "MHO-C303"],
     1983: ["Yeelight", "Button S1", "YLAI003"],
     2038: ["Xiaomi", "Night Light 2", "MJYD02YL-A"],  # 15,4103,4106,4119,4120
+    2147: ["Xiaomi", "Water Leak Sensor", "SJWS01LM"],
     2443: ["Xiaomi", "Door Sensor 2", "MCCGQ02HL"],
     2444: ["Xiaomi", "Door Lock", "XMZNMST02YD"],
     2480: ["Xiaomi", "Safe Box", "BGX-5/X1-3001"],
@@ -141,7 +143,8 @@ BLE_LOCK_ERROR = {
 
 ACTIONS = {
     1249: ['right', 'left'],
-    1983: ['single', 'double', 'hold']
+    1983: ['single', 'double', 'hold'],
+    2147: ['single'],
 }
 
 
@@ -189,7 +192,11 @@ def parse_xiaomi_ble(event: dict, pdid: int) -> Optional[dict]:
 
     elif eid == 0x1006 and length == 2:  # 4102
         # Humidity percentage, ranging from 0-1000
-        return {'humidity': int.from_bytes(data, 'little') / 10.0}
+        value = int.from_bytes(data, 'little') / 10.0
+        if pdid in (903, 1371):
+            # two models has bug, they increase humidity on each data by 0.1
+            value = int(value)
+        return {'humidity': value}
 
     elif eid == 0x1007 and length == 3:  # 4103
         value = int.from_bytes(data, 'little')
