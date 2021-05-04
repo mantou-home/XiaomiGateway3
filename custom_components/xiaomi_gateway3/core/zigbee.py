@@ -53,6 +53,7 @@ DEVICES = [{
         ['0.12.85', 'load_power', 'power', 'sensor'],
         ['0.13.85', None, 'consumption', 'sensor'],
         ['4.1.85', 'neutral_0', 'switch', 'switch'],  # or channel_0?
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
         ['13.1.85', None, 'button', None],
         [None, None, 'action', 'sensor'],
     ]
@@ -61,6 +62,21 @@ DEVICES = [{
     'lumi.relay.c2acn01': ["Aqara", "Relay", "LLKZMK11LM"],  # tested
     'lumi.ctrl_ln2': ["Aqara", "Double Wall Switch", "QBKG12LM"],
     'lumi.ctrl_ln2.aq1': ["Aqara", "Double Wall Switch", "QBKG12LM"],
+    'params': [
+        # ['0.11.85', 'load_voltage', 'power', 'sensor'],  # 0
+        ['0.12.85', 'load_power', 'power', 'sensor'],
+        # ['0.14.85', None, '?', 'sensor'],  # 5.01, 6.13
+        ['4.1.85', 'channel_0', 'channel 1', 'switch'],
+        ['4.2.85', 'channel_1', 'channel 2', 'switch'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
+        # [?, 'enable_motor_mode', 'interlock', None]
+        ['13.1.85', None, 'button_1', None],
+        ['13.2.85', None, 'button_2', None],
+        ['13.5.85', None, 'button_both', None],
+        [None, None, 'action', 'sensor'],
+    ]
+}, {
     'lumi.switch.b2nacn02': ["Aqara", "Double Wall Switch D1", "QBKG24LM"],
     'params': [
         # ['0.11.85', 'load_voltage', 'power', 'sensor'],  # 0
@@ -69,6 +85,9 @@ DEVICES = [{
         # ['0.14.85', None, '?', 'sensor'],  # 5.01, 6.13
         ['4.1.85', 'channel_0', 'channel 1', 'switch'],
         ['4.2.85', 'channel_1', 'channel 2', 'switch'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
+        ['8.0.2006', None, 'chip_temperature', 'sensor'],  # @mantoui
         # [?, 'enable_motor_mode', 'interlock', None]
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
@@ -87,6 +106,7 @@ DEVICES = [{
     'lumi.switch.b1lacn02': ["Aqara", "Single Wall Switch D1", "QBKG21LM"],
     'params': [
         ['4.1.85', 'channel_0', 'switch', 'switch'],  # or neutral_0?
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
         ['13.1.85', None, 'button', None],
         [None, None, 'action', 'sensor'],
     ]
@@ -96,6 +116,8 @@ DEVICES = [{
     'params': [
         ['4.1.85', 'neutral_0', 'channel 1', 'switch'],  # @to4ko
         ['4.2.85', 'neutral_1', 'channel 2', 'switch'],  # @to4ko
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.5.85', None, 'button_both', None],
@@ -106,6 +128,8 @@ DEVICES = [{
     'params': [
         ['4.1.85', 'channel_0', 'channel 1', 'switch'],
         ['4.2.85', 'channel_1', 'channel 2', 'switch'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.5.85', None, 'button_both', None],
@@ -118,6 +142,9 @@ DEVICES = [{
         ['4.1.85', 'neutral_0', 'channel 1', 'switch'],  # @to4ko
         ['4.2.85', 'neutral_1', 'channel 2', 'switch'],  # @to4ko
         ['4.3.85', 'neutral_2', 'channel 3', 'switch'],  # @to4ko
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
+        ['4.12.85', 'disable_btn2', 'disable channel 3', 'switch'],  # @mantoui
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.3.85', None, 'button_3', None],
@@ -135,6 +162,10 @@ DEVICES = [{
         ['4.1.85', 'channel_0', 'channel 1', 'switch'],
         ['4.2.85', 'channel_1', 'channel 2', 'switch'],
         ['4.3.85', 'channel_2', 'channel 3', 'switch'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # @mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # @mantoui
+        ['4.12.85', 'disable_btn2', 'disable channel 3', 'switch'],  # @mantoui
+        ['8.0.2006', None, 'chip_temperature', 'sensor'],  # @mantoui
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.3.85', None, 'button_3', None],
@@ -456,6 +487,8 @@ def fix_xiaomi_props(model, params) -> dict:
         if k in ('temperature', 'humidity', 'pressure'):
             if model != 'lumi.airmonitor.acn01':
                 params[k] = v / 100.0
+        elif k in ('chip_temperature'):
+            params[k] = v
         elif v in ('on', 'open'):
             params[k] = 1
         elif v in ('off', 'close'):
