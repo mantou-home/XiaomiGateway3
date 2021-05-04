@@ -1,12 +1,10 @@
 # Xiaomi Gateway 3 integration for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 [![Donate](https://img.shields.io/badge/donate-Coffee-yellow.svg)](https://www.buymeacoffee.com/AlexxIT)
 [![Donate](https://img.shields.io/badge/donate-Yandex-red.svg)](https://money.yandex.ru/to/41001428278477)
 
-Control Zigbee devices from Home Assistant with **Xiaomi Gateway 3 (ZNDMWG03LM)** on original firmware.
-
-**ATTENTION:** The component **does not work with new firmware versions**. Don't update your gateway! Check [supported firmwares](#supported-firmwares).
+Control Zigbee devices from Home Assistant with **Xiaomi Gateway 3 (ZNDMWG03LM and ZNDMWG02LM)** on original firmware.
 
 Gateway support **Zigbee 3**, **Bluetooth Mesh** and **HomeKit**.
 
@@ -16,7 +14,7 @@ This method does not change the device firmware. Gateway continues to work with 
 
 <img src="integrations.png" width="758">
 
-Thanks to [@Serrj](https://community.home-assistant.io/u/serrj-sv/) for [instruction](https://community.home-assistant.io/t/xiaomi-mijia-smart-multi-mode-gateway-zndmwg03lm-support/159586/61) how to enable Telnet on this device.
+Thanks to [@Serrj](https://community.home-assistant.io/u/serrj-sv/) for [instruction](https://community.home-assistant.io/t/xiaomi-mijia-smart-multi-mode-gateway-zndmwg03lm-support/159586/61) how to enable Telnet on old firmwares. And thanks to an unknown researcher for [instruction](https://gist.github.com/zvldz/1bd6b21539f84339c218f9427e022709) how to open telnet on new firmwares.
 
 **Important:** This component does not work with:
  - Xiaomi Gateway 2 (DGNWG02LM, lumi.gateway.v3) - use [this](https://www.home-assistant.io/integrations/xiaomi_aqara/) component
@@ -38,6 +36,7 @@ Thanks to [@Serrj](https://community.home-assistant.io/u/serrj-sv/) for [instruc
 - [Add and remove Zigbee devices](#add-and-remove-zigbee-devices)
 - [Add third-party Zigbee devices](#add-third-party-zigbee-devices)
 - [Zigbee Home Automation Mode](#zigbee-home-automation-mode)
+- [Zigbee2MQTT Mode](#zigbee2mqtt-mode)
 - [Handle Button Actions](#handle-button-actions)
 - [Handle BLE Locks](#handle-ble-locks)
 - [Obtain Mi Home device token](#obtain-mi-home-device-token)
@@ -45,6 +44,7 @@ Thanks to [@Serrj](https://community.home-assistant.io/u/serrj-sv/) for [instruc
 - [Advanced commands](#advanced-commands)
 - [How it works](#how-it-works)
 - [Debug mode](#debug-mode)
+- [Useful links](#userful-links)
 
 # FAQ
 
@@ -52,7 +52,7 @@ Thanks to [@Serrj](https://community.home-assistant.io/u/serrj-sv/) for [instruc
 A. Yes, they can and are already doing it. But if you have a worked hub and you do not update it, it will continue to work. Component can block fw updates with **Lock Firmware** switch.
 
 **Q. Does this integration support hubs DGNWG02LM, DGNWG05LM, Aqara Hub...?**  
-A. No. The integration only supports ZNDMWG03LM.
+A. No. The integration only supports ZNDMWG03LM (China version) and ZNDMWG02LM (Euro version).
 
 **Q. Does this integration support Xiaomi Robot Vacuum, Xiaomi Philips Bulb...?**  
 A. No. The integration does not support Xiaomi Wi-Fi devices.
@@ -61,19 +61,19 @@ A. No. The integration does not support Xiaomi Wi-Fi devices.
 A. Partially. The component connects to a hub on the local network. Zigbee devices work without internet. But adding new Zigbee devices to Mi Home requires Internet. Updating BLE device data may not work without Internet.
 
 **Q. Does the integration support non Xiaomi Zigbee devices?**  
-A. Yes. There are two ways to connect third party Zigbee devices. The first method allows devices to work in both Mi Home and Hass at the same time. The second method (ZHA) disconnects the hub from Mi Home and only works with Hass. Both methods have a different set of supported devices. There is no exact supported list. Don't expect absolutely every device on the market to be supported in any of these methods.
+A. Yes. There are three ways to connect third party Zigbee devices. All methods have a different set of supported devices. There is no exact supported list. Don't expect absolutely every device on the market to be supported in any of these methods.
 
 **Q. Will the Zigbee devices continue to work in Mi Home?**  
-A. Yes. If you do not enable ZHA mode, the devices will continue to work in Mi Home. And you can use automation in both Mi Home and Hass.
+A. Yes. If you do not enable ZHA or z2m mode, the devices will continue to work in Mi Home. And you can use automation in both Mi Home and Hass.
 
 **Q. Do I need to receive a token or enable Telnet manually?**  
 A. No. The token is obtained automatically using the login / password from the Mi Home account. Telnet turns on automatically using token.
 
 **Q. Should I open or solder the hub?**  
-A. Depends on the firmware version. Read [supported firmwares](#supported-firmwares) section.
+A. No. Read [supported firmwares](#supported-firmwares) section.
 
-**Q. Should I use ZHA mode?**  
-A. You decide. If all of your Zigbee devices are supported in Mi Home, it is best not to enable ZHA. If you have two hubs - you can use one of them in Mi Home mode, and the second in ZHA mode. Or you can also use the hub in Mi Home mode with Xiaomi devices and a Zigbee USB Dongle for other Zigbee devices.
+**Q. Should I use ZHA or z2m mode?**  
+A. You decide. If all of your Zigbee devices are supported in Mi Home, it is best to use it. If you have two hubs - you can use one of them in Mi Home mode, and the second in ZHA or z2m mode. Or you can also use the hub in Mi Home mode with Xiaomi devices and a Zigbee USB Dongle for other Zigbee devices.
 
 **Q. How many Zigbee devices does the hub support?**  
 A. The hub can connect directly up to 32 battery-powered devices (end devices). And **additionaly** up to 26 powered devices (routers). Other devices on your network can work through routers. The maximum number of devices is unknown. Official Xiaomi documentation writes about 128 devices.
@@ -86,30 +86,20 @@ A. All button clicks are displayed in the status of that one entity.
 
 # Supported Firmwares
 
-**Attention:** Starting from 2020.10, there is a high chance of buying any version of the gateway with "bad" firmware. Only soldering will be able to open Telnet.
+The component is only tested with these firmware versions:
 
-If you have "bad" firmware and don't want to solder - try to use [HomeKit Controller](https://www.home-assistant.io/integrations/homekit_controller/) component. It has many limitations, but the popular Xiaomi Zigbee devices should work fine. BLE and Mesh devices won't work. 3rd party zigbee devices won't work. And you won't have many advanced features of this component.
+- v1.4.6_0012 - you may use default open telnet command
+- v1.4.7_0160 - you **should** use [custom open telnet command](https://gist.github.com/zvldz/1bd6b21539f84339c218f9427e022709), safe to update
 
-Instruction for soldering: [wiki](https://github.com/AlexxIT/XiaomiGateway3/wiki).
+If you have problems with other firmware, don't even ask to fix it.
+
+The component can work with these firmware versions, but they may have bugs: v1.4.4_0003, v1.4.5_0012, v1.4.5_0016, v1.4.6_0030, v1.4.6_0043, v1.4.7_0063, v1.4.7_0065, v1.4.7_0115.
+
+Optionally you can flash gateway with custom firmware: [wiki](https://github.com/AlexxIT/XiaomiGateway3/wiki).
 
 Component can block fw updates with **Lock Firmware** switch. Mi Home app will continue to offer you update. But won't be able to install it. It should fail at 0%.
 
 [![Xiaomi Gateway 3 firmware update lock](https://img.youtube.com/vi/9BMoKq19yCI/mqdefault.jpg)](https://www.youtube.com/watch?v=9BMoKq19yCI)
-
-**ZNDMWG03LM (Chinese version, US plug)**
-- v1.4.4_0003 - factory firmware, supported, not recomended
-- v1.4.5_0012 - factory firmware, supported, not recomended
-- v1.4.5_0016 - safe to update, supported, not recomended
-- v1.4.6_0012 - safe to update, supported
-- v1.4.6_0030 - was available in summer 2020, now unavailable, supported
-- v1.4.6_0043 - **factory firmware from 2020.10, need to solder**
-- v1.4.7_0040 - **need to solder**
-- v1.4.7_0063 - **factory firmware from 2020.11, need to solder**
-- v1.4.7_0065 - **need to solder**
-- v1.4.7_0115 - **need to solder**
-
-**ZNDMWG02LM (Euro version, no plug)**
-- v1.4.6_0043 - **factory firmware, need to solder** (telnet has a password)
 
 # Supported Zigbee Devices
 
@@ -178,7 +168,7 @@ Tested Devices:
 - Xiaomi Alarm Clock (CGD1)
 - Xiaomi Door Sensor 2 (MCCGQ02HL)
 - Xiaomi Flower Care (HHCCJCY01)
-- Xiaomi Magic Cube (XMMF01JQD) - don't sends edge info, only direction!
+- Xiaomi Magic Cube (XMMF01JQD)
 - Xiaomi Mosquito Repellent (WX08ZM)
 - Xiaomi Motion Sensor 2 (RTCGQ02LM)
 - Xiaomi Night Light 2 (MJYD02YL-A)
@@ -190,6 +180,8 @@ Tested Devices:
 - Xiaomi ZenMeasure Clock (MHO-C303)
 - Yeelight Button S1 (YLAI003)
 
+XMMF01JQD don't sends edge info, only direction!
+
 Other BLE devices also maybe supported...
 
 Kettles and scooters are not BLE devices. It is not known whether the gateway can work with them. Currently not supported.
@@ -198,15 +190,22 @@ BLE devices and their attributes **don't appear immediately**! Data collected an
 
 # Supported Bluetooth Mesh Devices
 
-Tested Devices:
+Tested Mesh Lights:
 - Xiaomi Mesh Bulb (MJDP09YL)
 - Xiaomi Mesh Downlight (MJTS01YL)
+- Xiaomi Mesh Group (Mesh Group)
 - Yeelight Mesh Bulb E14 (YLDP09YL)
 - Yeelight Mesh Bulb E27 (YLDP10YL)
 - Yeelight Mesh Bulb M2 (YLDP25YL/YLDP26YL)
 - Yeelight Mesh Downlight (YLSD01YL)
 - Yeelight Mesh Downlight M2 (YLTS02YL/YLTS04YL)
 - Yeelight Mesh Spotlight (YLSD04YL)
+
+Tested Mesh Switches:
+- PTX Mesh Wall Double Switch (PTX-SK2M)
+- PTX Mesh Wall Single Switch (PTX-SK1M)
+- PTX Mesh Wall Triple Switch (PTX-TK3/M)
+- Xiaomi Mesh Wall Double Switch (DHKG02ZM)
 
 Other Mesh devices also maybe supported...
 
@@ -216,7 +215,7 @@ Other Mesh devices also maybe supported...
 
 [![Xiaomi Gateway 3 control from Home Assistant](https://img.youtube.com/vi/CQVSFISC9CE/mqdefault.jpg)](https://www.youtube.com/watch?v=CQVSFISC9CE)
 
-You can install component with HACS custom repo ([example](https://github.com/AlexxIT/SonoffLAN#install-with-hacs)): `AlexxIT/XiaomiGateway3`.
+You can install component with [HACS](https://hacs.xyz/). Available in default integration list.
 
 Or manually copy `xiaomi_gateway3` folder from [latest release](https://github.com/AlexxIT/XiaomiGateway3/releases/latest) to `custom_components` folder in your config folder.
 
@@ -366,7 +365,7 @@ You can discuss the feature [here](https://github.com/AlexxIT/XiaomiGateway3/iss
 
 [Zigbee Home Automation](https://www.home-assistant.io/integrations/zha/) (ZHA) is a standard Home Assistant component for managing Zigbee devices. It works with various radio modules such as CC2531, Conbee II, Tasmoted Sonoff ZBBridge and others.
 
-**Important:** ZHA component is in early development stage. Don't expect it to work well with all devices.
+**Important:** ZHA component is in active development stage. Don't expect it to work well with all devices.
 
 **Attention: ZHA mode cannot work simultaneously with Mi Home!**
 
@@ -381,6 +380,34 @@ Zigbee devices will not migrate from Mi Home to ZHA. You will need to pair them 
 You can change the operating mode at any time. Your gateway firmware does not change! Just reboot the gateway and it is back in stock.
 
 Thanks to [@zvldz](https://github.com/zvldz) for help with [socat](http://www.dest-unreach.org/socat/).
+
+# Zigbee2MQTT Mode
+
+**Video DEMO**
+
+[![Xiaomi Gateway 3 with support Zigbee2mqtt in Home Assistant](https://img.youtube.com/vi/esJ0nsqjejc/mqdefault.jpg)](https://www.youtube.com/watch?v=esJ0nsqjejc)
+
+[Zigbee2MQTT](https://www.zigbee2mqtt.io/) is a bigest project that support [hundreds](https://www.zigbee2mqtt.io/information/supported_devices.html) Zigbee devices from different vendors. And can be integrate with a lot of home automation projects.
+
+Unlike the ZHA you should install to your host or Hass.io system: [Mosquitto broker](https://github.com/home-assistant/addons/tree/master/mosquitto) and [Zigbee2MQTT Addon](https://github.com/zigbee2mqtt/hassio-zigbee2mqtt). Also you should setup [MQTT](https://www.home-assistant.io/integrations/mqtt/) integration.
+
+**Attention: Zigbee2MQTT mode cannot work simultaneously with Mi Home!**
+
+When you turn on Zigbee2MQTT mode - zigbee devices in Mi Home will stop working. Bluetooth devices will continue to work.
+
+To switch the mode go to:
+
+> Configuration > Integrations > Xiaomi Gateway 3 > Options > Mode
+
+Zigbee devices will not migrate from Mi Home to Zigbee2MQTT. You will need to pair them again.
+
+This mode will flash firmware of Gateway Zigbee chip automatically! And flash it back when you switch back to Mi Home mode. Becuse Zigbee2MQTT support only [new EZSP firmware](https://github.com/Koenkk/zigbee-herdsman/pull/317) and Xiaomi works with old one.
+
+You can use this mode with thank to this peoples:
+
+- [@kirovilya](https://github.com/kirovilya) and [@G1K](https://github.com/G1K) - developed support EFR32 chips in z2m project
+- [@CODeRUS](https://github.com/CODeRUS) and [@zvldz](https://github.com/zvldz) - adapted the script to flash the chip
+- [@faronov](https://github.com/faronov) - complied a new version of firmware 
 
 # Handle Button Actions
 
@@ -539,6 +566,14 @@ automation:
 
 You can use this integration to **get a token for any of your Xiaomi devices**. You don't need to have Xiaomi Gateway 3. Just install and add the integration, enter the username / password from your Mi Home account. And use the integration settings to view your account's device tokens.
 
+Also you can get:
+
+- **LAN key** for old [Xiaomi Mijia Gateway](https://www.home-assistant.io/integrations/xiaomi_aqara/) (lumi.gateway.v3)
+- **room names** for Vacuums that support room with names
+- **Bindkey** for BLE devices that has it
+
+<img src="cloud_tokens.png" width="1202">
+
 # Disable Buzzer
 
 If you have a hacked motion sensor, the gateway will beep periodically.
@@ -602,3 +637,11 @@ You can filter data in the logs, enable auto refresh (in seconds) and tail last 
 ```
 http://192.168.1.123:8123/c4e99cfc-0c83-4a39-b7f0-278b0e719bd1?q=ble_event&r=2&t=100
 ```
+
+# Useful links
+
+- [Russian Telegram Community](https://t.me/xiaomi_gw_v3_hack)
+- [Italian Telegram Community](https://t.me/HassioHelp)
+- [Russian video about instal integration](https://youtu.be/FVWfjE5tx2g)
+- [Russian article about flash gateway](https://simple-ha.ru/posts/261)
+- [Home Assistant Community](https://community.home-assistant.io/t/xiaomi-mijia-smart-multi-mode-gateway-zndmwg03lm-support/159586)

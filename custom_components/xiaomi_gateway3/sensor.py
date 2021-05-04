@@ -5,9 +5,10 @@ from datetime import timedelta
 from homeassistant.const import *
 from homeassistant.util.dt import now
 
-from . import DOMAIN, Gateway3Device
+from . import DOMAIN
+from .core import zigbee
 from .core.gateway3 import Gateway3
-from .core.utils import CLUSTERS
+from .core.helpers import XiaomiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ UNITS = {
     'smoke density': '% obs/ft',
     'moisture': '%',
     'chip_temperature': '°C',
+    'tvoc': CONCENTRATION_PARTS_PER_BILLION,
     # 'link_quality': 'lqi',
     # 'rssi': 'dBm',
     # 'msg_received': 'msg',
@@ -41,7 +43,8 @@ ICONS = {
     'smoke density': 'mdi:google-circles-communities',
     'gateway': 'mdi:router-wireless',
     'zigbee': 'mdi:zigbee',
-    'ble': 'mdi:bluetooth'
+    'ble': 'mdi:bluetooth',
+    'tvoc': 'mdi:cloud',
 }
 
 INFO = ['ieee', 'nwk', 'msg_received', 'msg_missed', 'unresponsive',
@@ -51,7 +54,7 @@ INFO = ['ieee', 'nwk', 'msg_received', 'msg_missed', 'unresponsive',
 async def async_setup_entry(hass, entry, add_entities):
     def setup(gateway: Gateway3, device: dict, attr: str):
         if attr == 'action':
-            add_entities([Gateway3Action(gateway, device, attr)])
+            add_entities([XiaomiAction(gateway, device, attr)])
         elif attr == 'gateway':
             add_entities([GatewayStats(gateway, device, attr)])
         elif attr == 'zigbee':
@@ -59,40 +62,36 @@ async def async_setup_entry(hass, entry, add_entities):
         elif attr == 'ble':
             add_entities([BLEStats(gateway, device, attr)])
         else:
-            add_entities([Gateway3Sensor(gateway, device, attr)])
+            add_entities([XiaomiSensor(gateway, device, attr)])
 
     gw: Gateway3 = hass.data[DOMAIN][entry.entry_id]
     gw.add_setup('sensor', setup)
 
 
-async def async_unload_entry(hass, entry):
-    return True
-
-
-class Gateway3Sensor(Gateway3Device):
+class XiaomiSensor(XiaomiEntity):
     @property
     def state(self):
         return self._state
 
     @property
     def device_class(self):
-        return self._attr
+        return self.attr
 
     @property
     def unit_of_measurement(self):
-        return UNITS.get(self._attr)
+        return UNITS.get(self.attr)
 
     @property
     def icon(self):
-        return ICONS.get(self._attr)
+        return ICONS.get(self.attr)
 
     def update(self, data: dict = None):
-        if self._attr in data:
-            self._state = data[self._attr]
-        self.async_write_ha_state()
+        if self.attr in data:
+            self._state = data[self.attr]
+        self.schedule_update_ha_state()
 
 
-class GatewayStats(Gateway3Sensor):
+class GatewayStats(XiaomiSensor):
     @property
     def device_class(self):
         # don't use const to support older Hass version
@@ -103,12 +102,13 @@ class GatewayStats(Gateway3Sensor):
         return True
 
     async def async_added_to_hass(self):
-        self.gw.add_stats('lumi.0', self.update)
+        self.gw.add_stats(self.device['did'], self.update)
         # update available when added to Hass
         self.update()
 
     async def async_will_remove_from_hass(self) -> None:
-        self.gw.remove_stats('lumi.0', self.update)
+        await super().async_will_remove_from_hass()
+        self.gw.remove_stats(self.device['did'], self.update)
 
     def update(self, data: dict = None):
         # empty data - update state to available time
@@ -118,10 +118,10 @@ class GatewayStats(Gateway3Sensor):
         else:
             self._attrs.update(data)
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
 
-class ZigbeeStats(Gateway3Sensor):
+class ZigbeeStats(XiaomiSensor):
     last_seq1 = None
     last_seq2 = None
 
@@ -149,6 +149,7 @@ class ZigbeeStats(Gateway3Sensor):
         self.gw.add_stats(self._attrs['ieee'], self.update)
 
     async def async_will_remove_from_hass(self) -> None:
+        await super().async_will_remove_from_hass()
         self.gw.remove_stats(self._attrs['ieee'], self.update)
 
     def update(self, data: dict = None):
@@ -158,7 +159,7 @@ class ZigbeeStats(Gateway3Sensor):
             self._attrs['rssi'] = data['rssi']
 
             cid = int(data['clusterId'], 0)
-            self._attrs['last_msg'] = cluster = CLUSTERS.get(cid, cid)
+            self._attrs['last_msg'] = cluster = zigbee.CLUSTERS.get(cid, cid)
 
             self._attrs['msg_received'] += 1
 
@@ -197,10 +198,10 @@ class ZigbeeStats(Gateway3Sensor):
         elif data.get('deviceState') == 17:
             self._attrs['unresponsive'] += 1
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
 
-class BLEStats(Gateway3Sensor):
+class BLEStats(XiaomiSensor):
     @property
     def device_class(self):
         # don't use const to support older Hass version
@@ -220,12 +221,13 @@ class BLEStats(Gateway3Sensor):
         self.gw.add_stats(self.device['did'], self.update)
 
     async def async_will_remove_from_hass(self) -> None:
+        await super().async_will_remove_from_hass()
         self.gw.remove_stats(self.device['did'], self.update)
 
     def update(self, data: dict = None):
         self._attrs['msg_received'] += 1
         self._state = now().isoformat(timespec='seconds')
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
 
 # https://github.com/Koenkk/zigbee-herdsman-converters/blob/master/converters/fromZigbee.js#L4738
@@ -255,7 +257,7 @@ VIBRATION = {
 }
 
 
-class Gateway3Action(Gateway3Device):
+class XiaomiAction(XiaomiEntity):
     _state = ''
 
     @property
@@ -270,31 +272,31 @@ class Gateway3Action(Gateway3Device):
         for k, v in data.items():
             if k == 'button':
                 # fix 1.4.7_0115 heartbeat error (has button in heartbeat)
-                if 'voltage' in data:
+                if 'battery' in data:
                     return
-                data[self._attr] = BUTTON.get(v, 'unknown')
+                data[self.attr] = BUTTON.get(v, 'unknown')
                 break
             elif k.startswith('button_both'):
-                data[self._attr] = k + '_' + BUTTON_BOTH.get(v, 'unknown')
+                data[self.attr] = k + '_' + BUTTON_BOTH.get(v, 'unknown')
                 break
             elif k.startswith('button'):
-                data[self._attr] = k + '_' + BUTTON.get(v, 'unknown')
+                data[self.attr] = k + '_' + BUTTON.get(v, 'unknown')
                 break
             elif k == 'vibration' and v != 2:  # skip tilt and wait tilt_angle
-                data[self._attr] = VIBRATION.get(v, 'unknown')
+                data[self.attr] = VIBRATION.get(v, 'unknown')
                 break
             elif k == 'tilt_angle':
-                data = {'vibration': 2, 'angle': v, self._attr: 'tilt'}
+                data = {'vibration': 2, 'angle': v, self.attr: 'tilt'}
                 break
 
-        if self._attr in data:
+        if self.attr in data:
             # TODO: fix me
             self._attrs = data
-            self._state = data[self._attr]
-            self.async_write_ha_state()
+            self._state = data[self.attr]
+            self.schedule_update_ha_state()
 
             # repeat event from Aqara integration
-            self.hass.bus.async_fire('xiaomi_aqara.click', {
+            self.hass.bus.fire('xiaomi_aqara.click', {
                 'entity_id': self.entity_id, 'click_type': self._state
             })
 
@@ -302,4 +304,4 @@ class Gateway3Action(Gateway3Device):
 
             self._state = ''
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
