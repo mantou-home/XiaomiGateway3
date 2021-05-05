@@ -24,7 +24,6 @@ UNITS = {
     'gas density': '% LEL',
     'smoke density': '% obs/ft',
     'moisture': '%',
-    'chip_temperature': '°C',
     'tvoc': CONCENTRATION_PARTS_PER_BILLION,
     # 'link_quality': 'lqi',
     # 'rssi': 'dBm',
@@ -36,8 +35,6 @@ UNITS = {
 ICONS = {
     'conductivity': 'mdi:flower',
     'consumption': 'mdi:flash',
-    'power': 'mdi:speedometer',
-    'chip_temperature': 'mdi:thermometer-lines',
     'gas density': 'mdi:google-circles-communities',
     'moisture': 'mdi:water-percent',
     'smoke density': 'mdi:google-circles-communities',

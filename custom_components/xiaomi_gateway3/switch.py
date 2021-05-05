@@ -9,14 +9,6 @@ from .core.helpers import XiaomiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-ICONS = {
-    'channel 1': 'mdi:flash',
-    'channel 2': 'mdi:flash',
-    'channel 3': 'mdi:flash',
-    'disable channel 1': 'mdi:flash-outline',
-    'disable channel 2': 'mdi:flash-outline',
-    'disable channel 3': 'mdi:flash-outline',
-}
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     def setup(gateway: Gateway3, device: dict, attr: str):
@@ -32,10 +24,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class XiaomiZigbeeSwitch(XiaomiEntity, ToggleEntity):
-    @property
-    def icon(self):
-        return ICONS.get(self._attr)
-
     @property
     def is_on(self):
         return self._state
