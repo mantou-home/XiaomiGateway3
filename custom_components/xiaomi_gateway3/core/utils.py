@@ -3,6 +3,7 @@ import logging
 import random
 import re
 import string
+import time
 import uuid
 from datetime import datetime
 from typing import List, Optional
@@ -99,6 +100,9 @@ def check_mgl03(host: str, token: str, telnet_cmd: Optional[str]) \
     # fw 1.4.6_0043+ won't answer on cmd without cloud, so don't check answer
     miio.send(raw['method'], raw.get('params'))
 
+    # waiting for telnet to start
+    time.sleep(1)
+
     try:
         # 4. check if telnet command helps
         TelnetShell(host)
@@ -147,6 +151,14 @@ async def get_bindkey(cloud: MiCloud, did: str):
     return bindkey
 
 
+def reverse_mac(s: str):
+    return f"{s[10:]}{s[8:10]}{s[6:8]}{s[4:6]}{s[2:4]}{s[:2]}"
+
+
+def print_mac(s: str):
+    return f"{s[:2]}:{s[2:4]}:{s[4:6]}:{s[6:8]}:{s[8:10]}:{s[10:]}".upper()
+
+
 EZSP_URLS = {
     7: 'https://master.dl.sourceforge.net/project/mgl03/zigbee/ncp-uart-sw_mgl03_6_6_2_stock.gbl?viasf=1',
     8: 'https://master.dl.sourceforge.net/project/mgl03/zigbee/ncp-uart-sw_mgl03_6_7_8_z2m.gbl?viasf=1',
@@ -159,14 +171,20 @@ def _update_zigbee_firmware(host: str, ezsp_version: int):
     ps = shell.get_running_ps()
     if "Lumi_Z3GatewayHost_MQTT" in ps:
         shell.stop_lumi_zigbee()
-    if "tcp-l:8888" not in ps:
+    if "tcp-l:8888" in ps:
+        shell.stop_zigbee_tcp()
+    # flash on another port because running ZHA or z2m can breake process
+    if "tcp-l:8889" not in ps:
         shell.check_or_download_socat()
-        shell.run_zigbee_tcp()
+        shell.run_zigbee_tcp(port=8889)
+        time.sleep(.5)
+
+    _LOGGER.debug(f"Try update EZSP to version {ezsp_version}")
 
     from ..util.elelabs_ezsp_utility import ElelabsUtilities
 
     config = type('', (), {
-        'port': (host, 8888),
+        'port': (host, 8889),
         'baudrate': 115200,
         'dlevel': _LOGGER.level
     })
@@ -174,6 +192,7 @@ def _update_zigbee_firmware(host: str, ezsp_version: int):
 
     # check current ezsp version
     resp = utils.probe()
+    _LOGGER.debug(f"EZSP before flash: {resp}")
     if resp[0] == 0 and resp[1] == ezsp_version:
         return True
 
@@ -181,7 +200,7 @@ def _update_zigbee_firmware(host: str, ezsp_version: int):
     r = requests.get(url)
 
     resp = utils.flash(r.content)
-
+    _LOGGER.debug(f"EZSP after flash: {resp}")
     return resp[0] == 0 and resp[1] == ezsp_version
 
 

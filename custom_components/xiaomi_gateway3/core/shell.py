@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 DOWNLOAD = "(wget -O /data/{0} http://master.dl.sourceforge.net/project/mgl03/{1}/{0}?viasf=1 && chmod +x /data/{0})"
 
 CHECK_SOCAT = "(md5sum /data/socat | grep 92b77e1a93c4f4377b4b751a5390d979)"
-RUN_ZIGBEE_TCP = "/data/socat tcp-l:8888,reuseaddr,fork /dev/ttyS2"
+RUN_ZIGBEE_TCP = "/data/socat tcp-l:%d,reuseaddr,fork /dev/ttyS2"
 
 CHECK_BUSYBOX = "(md5sum /data/busybox | grep 099137899ece96f311ac5ab554ea6fec)"
 LOCK_FIRMWARE = "/data/busybox chattr +i"
@@ -35,10 +35,8 @@ FIRMWARE_PATHS = ('/data/firmware.bin', '/data/firmware/firmware_ota.bin')
 TAR_DATA = b"tar -czOC /data basic_app basic_gw conf factory miio mijia_automation silicon_zigbee_host zigbee zigbee_gw ble_info miioconfig.db 2>/dev/null | base64\n"
 
 BT_MD5 = {
-    '1.4.6_0012': '367bf0045d00c28f6bff8d4132b883de',
-    '1.4.6_0043': 'c4fa99797438f21d0ae4a6c855b720d2',
-    '1.4.7_0115': 'be4724fbc5223fcde60aff7f58ffea28',
-    '1.4.7_0160': '9290241cd9f1892d2ba84074f07391d4',
+    '1.4.7_0160': 'ba2e1931667c836187cbf7f1e834f588',
+    '1.5.0_0026': 'ba2e1931667c836187cbf7f1e834f588',
 }
 
 
@@ -67,11 +65,12 @@ class TelnetShell(Telnet):
         download = DOWNLOAD.format('socat', 'bin')
         return self.exec(f"{CHECK_SOCAT} || {download}")
 
-    def run_zigbee_tcp(self):
-        self.exec(f"{CHECK_SOCAT} && {RUN_ZIGBEE_TCP} &")
+    def run_zigbee_tcp(self, port=8888):
+        self.exec(f"{CHECK_SOCAT} && {RUN_ZIGBEE_TCP % port} &")
 
     def stop_zigbee_tcp(self):
-        self.exec("pkill -f 'tcp-l:8888'")
+        # stop both 8888 and 8889
+        self.exec("pkill -f 'tcp-l:888'")
 
     def run_lumi_zigbee(self):
         self.exec("daemon_app.sh &")
@@ -101,6 +100,9 @@ class TelnetShell(Telnet):
             "/data/silabs_ncp_bt /dev/ttyS1 1 2>&1 >/dev/null | "
             "mosquitto_pub -t log/ble -l &"
         )
+
+    def stop_bt(self):
+        self.exec("killall silabs_ncp_bt")
 
     def check_firmware_lock(self) -> bool:
         """Check if firmware update locked. And create empty file if needed."""
