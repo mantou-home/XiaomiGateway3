@@ -109,7 +109,7 @@ DEVICES = [{
     ]
 }, {
     3083: ["Xiaomi", "Mi Smart Electrical Outlet", "ZNCZ01ZM"],
-    'params': [
+    'miot_spec': [
         [2, 1, 'outlet', 'switch'],
         [3, 1, 'power', 'sensor'],
         [4, 1, 'backlight', 'switch'],
@@ -446,7 +446,7 @@ def get_device(pdid: int, default_name: str) -> Optional[dict]:
         'device_model': str(pdid),
         'lumi_spec': None,
         # default Mesh device will be Bulb
-        'params': [
+        'miot_spec': [
             [2, 1, 'light', 'light'],
             [2, 2, 'brightness', None],
             [2, 3, 'color_temp', None],

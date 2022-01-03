@@ -36,6 +36,8 @@ class GatewayBase(DevicesRegistry):
 
     host: str = None
 
+    options: dict = None
+
     # TODO: remove this prop
     gw_topic: str = None
 
@@ -51,7 +53,9 @@ class GatewayBase(DevicesRegistry):
         return self.devices[self.did]
 
     def debug(self, message: str):
-        raise NotImplemented
+        # basic logs
+        if 'true' in self.debug_mode:
+            _LOGGER.debug(f"{self.host} | {message}")
 
     def warning(self, message: str):
         _LOGGER.warning(f"{self.host} | {message}")
@@ -67,7 +71,7 @@ class GatewayMesh(GatewayBase):
         for device in self.devices.values():
             if device['type'] == 'mesh' and 'childs' not in device:
                 # TODO: rewrite more clear logic for lights and switches
-                p = device['params'][0]
+                p = device['miot_spec'][0]
                 self.mesh_params.append({
                     'did': device['did'], 'siid': p[0], 'piid': p[1]
                 })
@@ -96,7 +100,7 @@ class GatewayMesh(GatewayBase):
                             continue
 
                         did = item['did']
-                        device_params = self.devices[did]['params']
+                        device_params = self.devices[did]['miot_spec']
                         # get other props for turn on lights or live switches
                         if device_params[0][3] == 'switch' or item['value']:
                             params2 += [{
@@ -143,7 +147,7 @@ class GatewayMesh(GatewayBase):
             device = self.devices[did]
 
             prop = next((
-                p[2] for p in device['params']
+                p[2] for p in device['miot_spec']
                 if p[0] == param['siid'] and p[1] == param['piid']
             ), None)
             if not prop:
@@ -174,7 +178,7 @@ class GatewayMesh(GatewayBase):
         payload = []
         for k, v in data.items():
             param = next(
-                p for p in device['params']
+                p for p in device['miot_spec']
                 if p[2] == k
             )
             payload.append({
@@ -195,7 +199,6 @@ class GatewayMesh(GatewayBase):
         self.mesh_ts = time.time() + 2
 
 
-# noinspection PyUnusedLocal
 class GatewayStats(GatewayMesh):
     parent_scan_ts: float = 0
     # collected data from MQTT topic log/z3 (zigbee console)
@@ -514,7 +517,6 @@ class GatewayEntry(GatewayNetwork):
     pair_model = None
     pair_payload = None
     pair_payload2 = None
-    telnet_cmd = None
 
     def __init__(self, host: str, token: str, **options):
         self.host = host
@@ -525,14 +527,7 @@ class GatewayEntry(GatewayNetwork):
         self.miio = AsyncMiIO(host, token)
         self.mqtt = MiniMQTT()
 
-        self._ble = options.get('ble', True)  # for fast access
-        self._debug = options.get('debug', '')  # for fast access
-        self.parent_scan_interval = options.get('parent', -1)
-        self.default_devices = config['devices'] if config else None
-
-        self.telnet_cmd = options.get('telnet_cmd') or TELNET_CMD
-
-        if 'true' in self._debug:
+        if 'true' in self.debug_mode:
             self.miio.debug = True
 
         self.setups = {}
@@ -734,7 +729,7 @@ class GatewayEntry(GatewayNetwork):
 
                     params = {
                         p[2]: retain.get(p[1])
-                        for p in (desc['params'] or desc['mi_spec'])
+                        for p in (desc['lumi_spec'] or desc['miot_spec'])
                         if p[1] is not None
                     }
 
@@ -814,7 +809,7 @@ class GatewayEntry(GatewayNetwork):
                     _LOGGER.exception("Can't read mesh devices")
 
             # for testing purposes
-            for k, v in self.default_devices.items():
+            for k, v in self.defaults.items():
                 if k[0] == '_':
                     devices.append(v)
 
@@ -942,8 +937,10 @@ class GatewayEntry(GatewayNetwork):
     def setup_devices(self, devices: list):
         """Add devices to hass."""
         for device in devices:
-            did = device['did']
             type_ = device['type']
+            self.debug(f"Setup {type_} device {device}")
+
+            device = self.find_or_create_device(device)
 
             if type_ == 'gateway':
                 self.did = device['did']
@@ -1010,7 +1007,7 @@ class GatewayEntry(GatewayNetwork):
                 prop = zigbee.GLOBAL_PROP[prop]
             else:
                 prop = next((
-                    p[2] for p in (device['params'] or device['mi_spec'])
+                    p[2] for p in (device['lumi_spec'] or device['miot_spec'])
                     if p[0] == prop
                 ), prop)
 

@@ -13,6 +13,7 @@ from homeassistant.helpers.storage import Store
 
 from .core import logger
 from .core.gateway3 import Gateway3
+from .core.helpers import DevicesRegistry
 from .core.utils import DOMAIN, XiaomiGateway3Debug
 from .core.xiaomi_cloud import MiCloud
 
@@ -60,8 +61,6 @@ async def async_setup(hass: HomeAssistant, hass_config: dict):
         CONF_ATTRIBUTES_TEMPLATE: config.get(CONF_ATTRIBUTES_TEMPLATE)
     }
 
-    config.setdefault('devices', {})
-
     await _handle_device_remove(hass)
 
     # utils.migrate_unique_id(hass)
@@ -87,9 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not entry.update_listeners:
         entry.add_update_listener(async_update_options)
 
-    config = hass.data[DOMAIN]['config']
-    hass.data[DOMAIN][entry.entry_id] = \
-        Gateway3(**entry.options, config=config)
+    hass.data[DOMAIN][entry.entry_id] = Gateway3(**entry.options)
 
     hass.async_create_task(_setup_domains(hass, entry))
 
@@ -191,7 +188,12 @@ async def _setup_micloud_entry(hass: HomeAssistant, config_entry):
         hass.data[DOMAIN]['devices'] += devices
 
     for device in devices:
-        default_devices[device['did']] = {'device_name': device['name']}
+        # key - mac for BLE, and did for others
+        did = device['did'] if device['pid'] not in '6' else \
+            device['mac'].replace(':', '').lower()
+        DevicesRegistry.defaults.setdefault(did, {})
+        # don't override name if exists
+        DevicesRegistry.defaults[did].setdefault('device_name', device['name'])
 
     return True
 
