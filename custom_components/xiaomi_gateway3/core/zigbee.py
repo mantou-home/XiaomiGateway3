@@ -92,8 +92,11 @@ DEVICES = [{
     'lumi_spec': [
         ['0.12.85', 'load_power', 'power', 'sensor'],
         ['0.13.85', None, 'energy', 'sensor'],
+        ['4.10.85', 'disable_btn0', 'disable channel 1', 'switch'],  # mantoui
+        ['4.11.85', 'disable_btn1', 'disable channel 2', 'switch'],  # mantoui
         ['4.1.85', 'channel_0', 'channel 1', 'switch'],
         ['4.2.85', 'channel_1', 'channel 2', 'switch'],
+        ['8.0.2006', None, 'chip_temperature', 'sensor'],  # mantoui
         ['13.1.85', None, 'button_1', None],
         ['13.2.85', None, 'button_2', None],
         ['13.5.85', None, 'button_both', None],
