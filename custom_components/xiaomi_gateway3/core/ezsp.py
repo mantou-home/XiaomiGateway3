@@ -9,6 +9,7 @@ from ..util.elelabs_ezsp_utility import EzspProtocolInterface
 _LOGGER = logging.getLogger(__name__)
 
 
+# noinspection PyUnusedLocal
 class EzspUtils:
     sock: socket = None
     version: str = None
@@ -23,6 +24,7 @@ class EzspUtils:
         self.sock.settimeout(5)
         self.sock.connect((host, port))
 
+    # noinspection PyPep8Naming
     def flushInput(self):
         pass
 
@@ -32,7 +34,7 @@ class EzspUtils:
     def read(self, size: int = 1):
         try:
             return self.sock.recv(size)
-        except:
+        except Exception:
             return b''
 
     def readline(self):
@@ -50,8 +52,8 @@ class EzspUtils:
     def state(self) -> Optional[str]:
         try:
             resp = self.ezsp.initEzspProtocol()
-        except:
-            _LOGGER.debug("NCP init error")
+        except Exception as e:
+            _LOGGER.debug("NCP init error", exc_info=e)
             return None
 
         if resp == 0:
@@ -122,6 +124,7 @@ class EzspUtils:
         if not success:
             return False
 
+        # noinspection PyUnresolvedReferences
         from xmodem import XMODEM
         modem = XMODEM(getc, putc)
         modem.log = _LOGGER.getChild('xmodem')

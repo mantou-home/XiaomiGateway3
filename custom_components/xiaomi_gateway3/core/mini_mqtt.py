@@ -148,6 +148,7 @@ class MiniMQTT:
     def __init__(self, keepalive=15, timeout=5):
         self.keepalive = keepalive
         self.timeout = timeout
+        self.pub_buffer = []
 
     async def read_varlen(self) -> int:
         var = 0
@@ -174,8 +175,11 @@ class MiniMQTT:
 
     async def connect(self, host: str):
         try:
-            return await asyncio.wait_for(self._connect(host), self.timeout)
-        except:
+            resp = await asyncio.wait_for(self._connect(host), self.timeout)
+            if resp and self.pub_buffer:
+                asyncio.create_task(self.empty_buffer())
+            return resp
+        except Exception:
             return False
 
     async def disconnect(self):
@@ -183,7 +187,7 @@ class MiniMQTT:
         try:
             self.writer.write(msg)
             await asyncio.wait_for(self.writer.drain(), self.timeout)
-        except:
+        except Exception:
             _LOGGER.debug("Can't disconnect from gateway")
 
     async def subscribe(self, topic: str):
@@ -192,10 +196,13 @@ class MiniMQTT:
         try:
             self.writer.write(msg)
             await asyncio.wait_for(self.writer.drain(), self.timeout)
-        except:
+        except Exception:
             _LOGGER.debug(f"Can't subscribe to {topic}")
 
     async def publish(self, topic: str, payload, retain=False):
+        if self.writer is None:
+            self.pub_buffer.append([topic, payload, retain])
+            return
         if isinstance(payload, str):
             payload = payload.encode()
         elif isinstance(payload, dict):
@@ -206,7 +213,7 @@ class MiniMQTT:
         try:
             self.writer.write(msg)
             await asyncio.wait_for(self.writer.drain(), self.timeout)
-        except:
+        except Exception:
             _LOGGER.debug(f"Can't publish {payload} to {topic}")
 
     async def read(self) -> Optional[MQTTMessage]:
@@ -248,8 +255,14 @@ class MiniMQTT:
         try:
             self.writer.close()
             await asyncio.wait_for(self.writer.wait_closed(), self.timeout)
-        except:
+        except Exception:
             _LOGGER.debug("Can't close connection")
+
+    async def empty_buffer(self):
+        for args in self.pub_buffer:
+            await self.publish(*args)
+
+        self.pub_buffer.clear()
 
     def __aiter__(self):
         return self

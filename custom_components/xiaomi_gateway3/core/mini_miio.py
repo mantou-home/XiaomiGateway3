@@ -25,10 +25,12 @@ class BasemiIO:
     """A simple class that implements the miIO protocol."""
     device_id = None
     delta_ts = None
+    debug = False
 
-    def __init__(self, host: str, token: str):
+    def __init__(self, host: str, token: str, timeout: float = 3):
         self.addr = (host, 54321)
         self.token = bytes.fromhex(token)
+        self.timeout = timeout
 
         key = hashlib.md5(self.token).digest()
         iv = hashlib.md5(key + self.token).digest()
@@ -85,11 +87,6 @@ class BasemiIO:
 class SyncMiIO(BasemiIO):
     """Synchronous miIO protocol."""
 
-    def __init__(self, host: str, token: str, timeout: float = 3):
-        super().__init__(host, token)
-        self.debug = False
-        self.timeout = timeout
-
     def ping(self, sock: socket) -> bool:
         """Returns `true` if the connection to the miio device is working. The
         token is not verified at this stage.
@@ -101,7 +98,7 @@ class SyncMiIO(BasemiIO):
                 self.device_id = int.from_bytes(raw[8:12], 'big')
                 self.delta_ts = time.time() - int.from_bytes(raw[12:16], 'big')
                 return True
-        except:
+        except Exception:
             pass
         return False
 
@@ -186,7 +183,7 @@ class SyncMiIO(BasemiIO):
             for i in range(0, len(params), 15):
                 result += self.send(method, params[i:i + 15])
             return result
-        except:
+        except Exception:
             return None
 
     def info(self) -> Union[dict, str, None]:
@@ -201,6 +198,7 @@ class SyncMiIO(BasemiIO):
         return self.send('miIO.info')
 
 
+# noinspection PyUnusedLocal
 class AsyncSocket(DatagramProtocol):
     timeout = 0
     transport: DatagramTransport = None
@@ -228,7 +226,7 @@ class AsyncSocket(DatagramProtocol):
             return
         try:
             self.transport.close()
-        except:
+        except Exception:
             _LOGGER.exception("Error when closing async socket")
 
     async def connect(self, addr: tuple):
@@ -260,7 +258,7 @@ class AsyncMiIO(BasemiIO, BaseProtocol):
                 self.device_id = int.from_bytes(raw[8:12], 'big')
                 self.delta_ts = time.time() - int.from_bytes(raw[12:16], 'big')
                 return True
-        except:
+        except Exception:
             pass
         return False
 
@@ -277,7 +275,7 @@ class AsyncMiIO(BasemiIO, BaseProtocol):
         offline = False
         for times in range(1, 4):
             sock = AsyncSocket()
-            sock.settimeout(5)
+            sock.settimeout(self.timeout)
             try:
                 # create socket every time for reset connection, because we can
                 # reseive answer on previous request or request from another
@@ -339,7 +337,7 @@ class AsyncMiIO(BasemiIO, BaseProtocol):
                 resp = await self.send(method, params[i:i + 15])
                 result += resp['result']
             return result
-        except:
+        except Exception:
             return None
 
     async def info(self):
