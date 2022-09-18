@@ -1,6 +1,6 @@
 # Xiaomi Gateway 3 for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 [![Donate](https://img.shields.io/badge/donate-BuyMeCoffee-yellow.svg)](https://www.buymeacoffee.com/AlexxIT)
 [![Donate](https://img.shields.io/badge/donate-YooMoney-8C3FFD.svg)](https://yoomoney.ru/to/41001428278477)
 
@@ -198,6 +198,7 @@ Aqara|Double Wall Switch H1 EU (no N)|[WS-EUK02](https://home.miot-spec.com/s/lu
 Aqara|Double Wall Switch H1 EU (with N)|[WS-EUK04](https://home.miot-spec.com/s/lumi.switch.n2aeu1)|channel_1, channel_2, energy, power, action, led, led_reverse, power_on_state, wireless_1, wireless_2|
 Aqara|Double Wall Switch US (with N)|[WS-USC04](https://home.miot-spec.com/s/lumi.switch.b2naus01)|channel_1, channel_2, action, energy, power, led, power_on_state, wireless_1, wireless_2|
 Aqara|Motion Sensor|[RTCGQ11LM](https://home.miot-spec.com/s/lumi.sensor_motion.aq2)|motion, illuminance, battery|
+Aqara|Motion Sensor E1|[RTCGQ15LM](https://home.miot-spec.com/s/lumi.motion.acn001)|motion, illuminance, battery|
 Aqara|Opple Four Button CN|[WXCJKG12LM](https://home.miot-spec.com/s/lumi.remote.b486opcn01)|mode, action, battery, battery_low, chip_temperature|
 Aqara|Opple MX480 CN|[XDD13LM](https://home.miot-spec.com/s/lumi.light.cwopcn03)|light|
 Aqara|Opple MX650 CN|[XDD12LM](https://home.miot-spec.com/s/lumi.light.cwopcn02)|light|
@@ -334,6 +335,7 @@ PTX|Mesh Downlight|[090615.light.mlig01](https://home.miot-spec.com/s/3416)|ligh
 PTX|Mesh Single Wall Switch|[PTX-SK1M](https://home.miot-spec.com/s/2258)|switch, led, wireless|
 PTX|Mesh Triple Wall Switch|[PTX-SK3M](https://home.miot-spec.com/s/3878)|channel_1, channel_2, channel_3, led, wireless_1, wireless_2, wireless_3|
 PTX|Mesh Triple Wall Switch|[PTX-TK3/M](https://home.miot-spec.com/s/2093)|channel_1, channel_2, channel_3, led, wireless_1, wireless_2, wireless_3|
+ZNSN|Mesh Wall Switch ML3|[znsn.switch.zm3d](https://home.miot-spec.com/s/8255)|channel_1, channel_2, channel_3|
 Unknown|Mesh Lightstrip (RF ready)|[crzm.light.wy0a01](https://home.miot-spec.com/s/2293)|light|
 Unknown|Mesh Switch|[dwdz.switch.sw0a01](https://home.miot-spec.com/s/4252)|switch|
 Unknown|Mesh Switch Controller|[lemesh.switch.sw0a01](https://home.miot-spec.com/s/2007)|switch|
