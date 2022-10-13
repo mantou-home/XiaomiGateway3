@@ -586,6 +586,8 @@ DEVICES += [{
     ],
 }, {
     "lumi.remote.acn003": ["Aqara", "Single Wall Button E1 CN", "WXKG16LM"],
+    # https://github.com/niceboygithub/AqaraGateway/pull/118/files
+    "lumi.remote.acn007": ["Aqara", "Single Wall Button E1", "WXKG20LM"],
     "spec": [
         Action,
         ButtonMIConv("button", mi="2.e.1", value=1),  # single
@@ -1037,7 +1039,7 @@ DEVICES += [{
         # value always 100%
         # ZBatteryConv("battery", "sensor"),
     ],
-}, {    
+}, {
     "RH3040": ["Tuya", "Motion Sensor", "TYZPIR-02"],
     "support": 5,
     "ttl": 6 * 60 * 60,
@@ -1253,9 +1255,36 @@ DEVICES += [{
     ],
     "ttl": "725m"  # battery every 4 hour
 }, {
+    # https://github.com/AlexxIT/XiaomiGateway3/issues/776
+    3685: ["Xiaomi", "Face Recognition Smart Door Lock X", "XMZNMS06LM"],
+    "spec": [
+        MiBeacon,
+        Converter("action", "sensor"),
+        Converter("battery", "sensor"),
+        Converter("contact", "binary_sensor"),
+        Converter("lock", "binary_sensor"),
+    ],
+}, {
     6473: ["Xiaomi", "Wireless Button (Double)", "XMWXKG01YL"],
     "spec": [MiBeacon, BLEAction, Button1, Button2, ButtonBoth, BLEBattery],
     "ttl": "16m",  # battery every 5 min
+}, {
+    10987: ["Linptech", "Linptech Motion Sensor v2", "hs1bb"],
+    "spec": [
+        MiBeacon, BLEMotion, BLEIlluminance, BLEBattery,
+        Converter("idle_time", "sensor", enabled=False),
+    ],
+}, {
+    # https://github.com/AlexxIT/XiaomiGateway3/issues/657
+    2444: ["Xiaomi", "Door Lock", "XMZNMST02YD"],
+    "spec": [
+        MiBeacon,
+        Converter("action", "sensor"),
+        Converter("battery", "sensor"),
+        Converter("lock", "binary_sensor"),
+        Converter("opening", "binary_sensor"),
+    ],
+    "ttl": "6h"
 }, {
     # BLE devices can be supported witout spec. New spec will be added
     # "on the fly" when device sends them. But better to rewrite right spec for
@@ -1270,7 +1299,6 @@ DEVICES += [{
     1433: ["Xiaomi", "Door Lock", "MJZNMS03LM"],
     1694: ["Aqara", "Door Lock N100 (Bluetooth)", "ZNMS16LM"],
     1695: ["Aqara", "Door Lock N200", "ZNMS17LM"],
-    2444: ["Xiaomi", "Door Lock", "XMZNMST02YD"],
     2480: ["Xiaomi", "Safe Box", "BGX-5/X1-3001"],
     3051: ["Aqara", "Door Lock D100", "ZNMS20LM"],
     3343: ["Loock", "Door Lock Classic 2X Pro", "loock.lock.cc2xpro"],
@@ -1414,7 +1442,6 @@ DEVICES += [{
                  min=0, max=1638400, enabled=False),
     ],
 }, {
-    5937: ["Xiaomi", "Mesh Triple Wall Switch", "DHKG05"],
     2093: ["PTX", "Mesh Triple Wall Switch", "PTX-TK3/M"],
     3878: ["PTX", "Mesh Triple Wall Switch", "PTX-SK3M"],
     "spec": [
@@ -1425,6 +1452,22 @@ DEVICES += [{
         BoolConv("wireless_1", "switch", mi="8.p.2", enabled=False),
         BoolConv("wireless_2", "switch", mi="8.p.3", enabled=False),
         BoolConv("wireless_3", "switch", mi="8.p.4", enabled=False),
+    ],
+}, {
+    5937: ["Xiaomi", "Mesh Triple Wall Switch", "DHKG05"],
+    "spec": [
+        Converter("channel_1", "switch", mi="2.p.1"),
+        Converter("channel_2", "switch", mi="3.p.1"),
+        Converter("channel_3", "switch", mi="4.p.1"),
+        Converter("led", "switch", mi="10.p.1", enabled=False),
+        BoolConv("wireless_1", "switch", mi="2.p.2", enabled=False),
+        BoolConv("wireless_2", "switch", mi="3.p.2", enabled=False),
+        BoolConv("wireless_3", "switch", mi="4.p.2", enabled=False),
+        Converter("action", "sensor", enabled=False),
+        ButtonMIConv("button_1", mi="5.e.1", value=1),  # single
+        ButtonMIConv("button_2", mi="6.e.1", value=1),  # single
+        ButtonMIConv("button_3", mi="7.e.1", value=1),  # single
+        Converter("anti_flick", "switch", mi="9.p.1"),
     ],
 }, {
     8255: ["ZNSN", "Mesh Wall Switch ML3", "zm3d"],
@@ -1526,7 +1569,20 @@ DEVICES += [{
             0: "auto", 1: "battery", 2: "usb"
         }, enabled=False)
     ],
+    "ttl": "1440m"
 }, {
+    4737: ["Xiaomi", "Smart Charging Table Lamp", "MJTD04YL"],
+    "spec": [
+        Converter("light", "light", mi="2.p.1"),
+        BrightnessConv("brightness", mi="2.p.2", parent="light", max=100),
+        ColorTempKelvin("color_temp", mi="2.p.3", parent="light"),
+        Converter("battery", "sensor", mi="4.p.1"),
+        MapConv("battery_charging", "binary_sensor", mi="4.p.2", map={
+             1: True, 2: False ,3: False,
+        }, enabled=False),
+    ],
+    "ttl": "7d",
+},{
     # urn:miot-spec-v2:device:light:0000A001:yeelink-nl2:1:0000C81D 米家智能光感夜灯
     4736: ["Xiaomi", "Mesh Night Light", "MJYD05YL"],
     "spec": [
