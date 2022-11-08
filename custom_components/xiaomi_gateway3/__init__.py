@@ -19,6 +19,7 @@ from . import system_health
 from .core import logger, utils
 from .core.const import DOMAIN, TITLE
 from .core.entity import XEntity
+from .core.ezsp import update_zigbee_firmware
 from .core.gateway import XGateway
 from .core.xiaomi_cloud import MiCloud
 
@@ -226,7 +227,7 @@ def _register_send_command(hass: HomeAssistant):
         cmd = call.data["command"].split(" ")
         if cmd[0] == "miio":
             raw = json.loads(call.data["data"])
-            resp = await gw.miio.send(raw['method'], raw.get('params'))
+            resp = await gw.miio_send(raw['method'], raw.get('params'))
             hass.components.persistent_notification.async_create(
                 str(resp), TITLE
             )

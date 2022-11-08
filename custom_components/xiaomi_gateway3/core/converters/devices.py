@@ -94,7 +94,7 @@ from .zigbee import *
 ###############################################################################
 
 DEVICES = [{
-    "lumi.gateway.mgl03": ["Xiaomi", "Gateway 3", "ZNDMWG03LM ZNDMWG02LM"],
+    "lumi.gateway.mgl03": ["Xiaomi", "Multimode Gateway", "ZNDMWG03LM"],
     "support": 4,  # @AlexxIT TODO: cloud link
     "spec": [
         # write pair=60 => report discovered_mac => report 8.0.2166? =>
@@ -132,7 +132,7 @@ DEVICES = [{
 }, {
     "lumi.gateway.aqcn02": ["Aqara", "Hub E1 CN", "ZHWG16LM"],
     "lumi.gateway.aqcn03": ["Aqara", "Hub E1 EU", "HE1-G01"],
-    "lumi.gateway.mcn001": ["Xiaomi", "Smart Hub V2", "DMWG03LM"],
+    "lumi.gateway.mcn001": ["Xiaomi", "Multimode Gateway 2", "DMWG03LM"],
     "support": 3,  # @AlexxIT
     "spec": [
         MapConv("pair", mi="8.0.2109", map={60: True, 0: False},
@@ -607,6 +607,9 @@ DEVICES += [{
         ButtonMIConv("button_2", mi="7.e.3", value=16),  # long
         ButtonMIConv("button_both", mi="8.e.1", value=4),  # single
         BatteryConv("battery", "sensor", mi="3.p.2"),
+        MapConv("mode", "select", mi="5.p.1", map={
+            1: "speed", 2: "multi"
+        }, enabled=False),
     ],
 }]
 
@@ -1145,6 +1148,9 @@ DEVICES += [{
     "TRADFRI bulb E14 WS opal 600lm": [
         "IKEA", "Bulb E14 WS opal 600lm", "LED1738G7"
     ],
+    "TRADFRI bulb E12 WS 450lm": ["IKEA", "Bulb E12 WS 450lm", "LED1903C5"],
+    "TRADFRI bulb E14 WS 470lm": ["IKEA", "Bulb E14 WS 470lm", "LED1903C5"],
+    "TRADFRI bulb E17 WS 440lm": ["IKEA", "Bulb E17 WS 440lm", "LED1903C5"],
     "spec": [
         ZOnOffConv("light", "light"),
         ZXiaomiBrightnessConv("brightness", parent="light"),
@@ -1578,11 +1584,11 @@ DEVICES += [{
         ColorTempKelvin("color_temp", mi="2.p.3", parent="light"),
         Converter("battery", "sensor", mi="4.p.1"),
         MapConv("battery_charging", "binary_sensor", mi="4.p.2", map={
-             1: True, 2: False ,3: False,
+            1: True, 2: False, 3: False,
         }, enabled=False),
     ],
     "ttl": "7d",
-},{
+}, {
     # urn:miot-spec-v2:device:light:0000A001:yeelink-nl2:1:0000C81D 米家智能光感夜灯
     4736: ["Xiaomi", "Mesh Night Light", "MJYD05YL"],
     "spec": [
