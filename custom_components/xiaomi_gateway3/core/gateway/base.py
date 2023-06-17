@@ -48,7 +48,6 @@ class GatewayBase:
     miio: AsyncMiIO = None
 
     did: str = None
-    time_offset = 0
 
     @property
     def ble_mode(self):
@@ -57,10 +56,6 @@ class GatewayBase:
     @property
     def debug_mode(self):
         return self.options.get("debug", "")
-
-    @property
-    def zha_mode(self) -> bool:
-        return self.options.get("zha", False)
 
     @property
     def stats_enable(self):
@@ -169,11 +164,16 @@ class GatewayBase:
 
         return fut.result()
 
-    async def mqtt_heartbeat(self, msg: MQTTMessage):
-        if msg.topic == "miio/report" and b'"event.gw.heartbeat"' in msg.payload:
-            payload = msg.json["params"][0]
-            payload = self.device.decode(GATEWAY, payload)
-            self.device.update(payload)
+    async def mqtt_read(self, msg: MQTTMessage):
+        if msg.topic == "miio/command_ack":
+            if ack := self.miio_ack.get(msg.json["id"]):
+                ack.set_result(msg.json)
+
+        elif msg.topic == "miio/report":
+            if b'"event.gw.heartbeat"' in msg.payload:
+                payload = msg.json["params"][0]
+                payload = self.device.decode(GATEWAY, payload)
+                self.device.update(payload)
 
         elif msg.topic.endswith("/heartbeat"):
             payload = self.device.decode(GATEWAY, msg.json)
