@@ -72,11 +72,15 @@ UNITS = {
     "distance": LENGTH_METERS,
     "occupancy_duration": TIME_SECONDS,
     "occupancy_distance": LENGTH_METERS,
+    "formaldehyde": CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
     # "link_quality": "lqi",
     # "rssi": "dBm",
     # "msg_received": "msg",
     # "msg_missed": "msg",
     # "unresponsive": "times"
+    "power_replenishment": "mAh",
+    # Deprecated: please use UnitOfElectricCurrent.MILLIAMPERE.
+    "realtime_current_in": ELECTRIC_CURRENT_MILLIAMPERE,
 }
 
 # https://developers.home-assistant.io/docs/core/entity/sensor/#long-term-statistics
@@ -133,7 +137,7 @@ class XiaomiStats(XiaomiBaseSensor):
     @callback
     def async_update_available(self):
         super().async_update_available()
-        self._attr_extra_state_attributes["available"] = self.available
+        self._attr_extra_state_attributes["available"] = self._attr_available
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
