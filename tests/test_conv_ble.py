@@ -352,3 +352,81 @@ def test_18639():
         {"siid": 11, "eiid": 1022, "arguments": [{"piid": 2, "value": 1174444720}]}
     )
     assert p == {"heart_rate": 69, "impedance_high": 448.0, "weight": 68.8}
+
+
+def test_18051():
+    device = XDevice(18051)
+
+    p = device.decode({"eid": 22038, "edata": "05"})
+    assert p == {"unknown": "05"}
+    p = device.decode({"eid": 18437, "edata": "00c01e44"})
+    assert p == {"illuminance": 635}
+    p = device.decode({"eid": 18510, "edata": "02"})
+    assert p == {"occupancy": True}
+    p = device.decode({"eid": 18510, "edata": "01"})
+    assert p == {"occupancy": True}
+    p = device.decode({"eid": 18513, "edata": "0000"})
+    assert p == {"has_someone_duration": 0}
+
+
+def test_2691():
+    device = XDevice(2691)
+
+    p = device.decode({"eid": 4119, "edata": "3C000000"})
+    assert p == {"idle_time": 60}
+
+
+def test_8154():
+    device = XDevice(8154)
+
+    p = device.decode({"eid": 11, "edata": "2000000180777B2C66"})
+    assert p == {
+        "action": "lock",
+        "action_id": 0,
+        "error": None,
+        "key_id": 0,
+        "message": "Unlock outside the door",
+        "method": "biological",
+        "method_id": 2,
+        "timestamp": "2024-04-27T07:13:43",
+    }
+    p = device.decode({"eid": 7, "edata": "017F7B2C66"})
+    assert p == {
+        "action": "door",
+        "action_id": 1,
+        "contact": False,
+        "message": "Door is closed",
+        "timestamp": "2024-04-27T07:13:51",
+    }
+    p = device.decode({"eid": 4111, "edata": "01"})
+    assert p == {"door": False}
+
+
+def test_20962():
+    device = XDevice(20962)
+
+    p = device.decode({"siid": 4, "eiid": 1001, "arguments": [{"piid": 1, "value": 0}]})
+    assert p == {"battery_low": False}
+
+    p = device.decode(
+        {
+            "siid": 3,
+            "eiid": 1022,
+            "arguments": [
+                {"piid": 1, "value": 144},
+                {"piid": 2, "value": 201654272},
+                {"piid": 3, "value": 293955796},
+            ],
+        }
+    )
+
+    for i in (202718212, 203751424, 204800000, 205848576, 206897152):
+        payload = {
+            "siid": 3,
+            "eiid": 1022,
+            "arguments": [
+                {"piid": 1, "value": 144},
+                {"piid": 2, "value": i},
+                {"piid": 3, "value": 0},
+            ],
+        }

@@ -6,7 +6,7 @@ from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry, device_registry
+from homeassistant.helpers import device_registry, entity_registry
 from homeassistant.helpers.aiohttp_client import (
     async_create_clientsession,
     async_get_clientsession,
@@ -17,7 +17,7 @@ from homeassistant.helpers.storage import Store
 
 from .. import XDevice
 from ..core import core_utils
-from ..core.const import DOMAIN, ZIGBEE, SUPPORTED_MODELS
+from ..core.const import DOMAIN, SUPPORTED_MODELS, ZIGBEE
 from ..core.gate.base import XGateway
 from ..core.xiaomi_cloud import MiCloud
 
@@ -78,9 +78,14 @@ def get_cloud_gateways(hass: HomeAssistant) -> list[dict]:
 async def setup_cloud(hass: HomeAssistant, config_entry: ConfigEntry):
     data: dict = config_entry.data.copy()
 
-    session = async_create_clientsession(hass)
-    cloud = MiCloud(session, data["servers"])
-    if await cloud.login(data["username"], data["password"]):
+    cloud = MiCloud(async_create_clientsession(hass), data["servers"])
+
+    if token := data.get("token"):
+        await cloud.login_token(token)
+    else:
+        await cloud.login_password(data["username"], data["password"])
+
+    if cloud.ok:
         cloud.devices = await cloud.get_devices()  # load devices from cloud
 
     hass.data[DOMAIN][config_entry.entry_id] = cloud
@@ -100,7 +105,7 @@ async def setup_cloud(hass: HomeAssistant, config_entry: ConfigEntry):
 
         await update_device_name(hass, cloud_device)
 
-    return bool(cloud.auth)
+    return cloud.ok
 
 
 async def update_device_name(hass: HomeAssistant, cloud_device: dict):

@@ -3,7 +3,6 @@ import io
 import logging
 import socket
 import time
-from typing import Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -16,10 +15,16 @@ from .shell.session import Session
 _LOGGER = logging.getLogger(__name__)
 
 
-async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
-    tar_fw = "6.7.10.0" if custom else "6.6.2.0"
+FIRMWARES = {
+    "6.6.2.0": "https://github.com/stas336/mgl03_fw/raw/refs/heads/main/zigbee/ncp-uart-sw_mgl03_6_6_2_stock.gbl",
+    "7.5.0.0": "https://github.com/stas336/mgl03_fw/raw/refs/heads/main/zigbee/ncp-uart-sw_mgl03_7_5_0_z2m.gbl",
+}
 
-    _LOGGER.debug(f"{host} [FWUP] Target zigbee firmware v{tar_fw}")
+
+async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
+    tar_fw = "7.5.0.0" if custom else "6.6.2.0"
+
+    _LOGGER.info(f"{host} [FWUP] Target zigbee firmware v{tar_fw}")
 
     session = Session(host)
 
@@ -51,6 +56,7 @@ async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
 
         # some users have broken firmware, so unknown firmware also OK
         cur_fw = await read_firmware(host)
+        _LOGGER.info(f"{host} [FWUP] Firmware before update: {cur_fw}")
         if cur_fw and cur_fw.startswith(tar_fw):
             _LOGGER.debug(f"{host} [FWUP] No need to update")
             return True
@@ -64,11 +70,7 @@ async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
         await async_process_requirements(hass, DOMAIN, ["xmodem==0.4.6"])
 
         client = async_create_clientsession(hass)
-        r = await client.get(
-            "https://master.dl.sourceforge.net/project/mgl03/zigbee/mgl03_ncp_6_7_10_b38400_sw.gbl?viasf=1"
-            if custom
-            else "https://master.dl.sourceforge.net/project/mgl03/zigbee/ncp-uart-sw_mgl03_6_6_2_stock.gbl?viasf=1"
-        )
+        r = await client.get(FIRMWARES[tar_fw])
         content = await r.read()
 
         ok = await hass.async_add_executor_job(flash_firmware, host, content)
@@ -83,6 +85,7 @@ async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
         await asyncio.sleep(2)
 
         cur_fw = await read_firmware(host)
+        _LOGGER.info(f"{host} [FWUP] Firmware after update: {cur_fw}")
         return cur_fw and cur_fw.startswith(tar_fw)
 
     except Exception as e:
@@ -96,23 +99,21 @@ async def update_zigbee_firmware(hass: HomeAssistant, host: str, custom: bool):
         await sh.close()
 
 
-async def read_firmware(host: str) -> Optional[str]:
-    ezsp = None
+async def read_firmware(host: str) -> str | None:
+    version = None
     try:
-        from bellows.ezsp import EZSP
+        from bellows import ezsp
 
-        ezsp = EZSP(
+        ezsp.NETWORK_COORDINATOR_STARTUP_RESET_WAIT = 3
+
+        ezsp = ezsp.EZSP(
             {"path": f"socket://{host}:8889", "baudrate": 0, "flow_control": None}
         )
         await ezsp.connect(use_thread=False)
-        await ezsp.startup_reset()
         _, _, version = await ezsp.get_board_info()
+        await ezsp.disconnect()
     except Exception as e:
-        _LOGGER.debug(f"{host} [FWUP] Read firmware error: {e}")
-        return None
-    finally:
-        if ezsp:
-            ezsp.close()
+        _LOGGER.warning(f"{host} [FWUP] Read firmware error: {e}")
 
     _LOGGER.debug(f"{host} [FWUP] Current zigbee firmware v{version}")
 

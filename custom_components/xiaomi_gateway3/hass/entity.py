@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from functools import cached_property
-from typing import TYPE_CHECKING, Callable
+from typing import Callable, TYPE_CHECKING
 
 from homeassistant.helpers.device_registry import (
     CONNECTION_BLUETOOTH,
@@ -14,7 +14,7 @@ from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraDa
 from homeassistant.helpers.template import Template
 
 from .entity_description import setup_entity_description
-from ..core.const import DOMAIN, GATEWAY, ZIGBEE, BLE, MESH
+from ..core.const import BLE, DOMAIN, GATEWAY, MESH, ZIGBEE
 from ..core.converters.base import BaseConv
 
 if TYPE_CHECKING:
@@ -91,9 +91,9 @@ class XEntity(Entity):
 
     @property
     def extra_restore_state_data(self) -> ExtraStoredData | None:
-        # filter None values
-        if state := {k: v for k, v in self.get_state().items() if v is not None}:
-            return RestoredExtraData(state)
+        if state_data := self.get_state():
+            if state := {k: v for k, v in state_data.items() if v is not None}:
+                return RestoredExtraData(state)
         return None
 
     def debug(self, msg: str):
